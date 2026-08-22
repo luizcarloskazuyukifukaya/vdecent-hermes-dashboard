@@ -360,10 +360,15 @@ async function mirrorTick() {
 async function main() {
   log(`hermes-bridge up · board=${BOARD} · poll=${POLL_MS}ms · mirror=${MIRROR_MS}ms`);
   await emit("status", "Bridge connected", { level: "up" });
-  await mirrorTick();
-  setInterval(() => mirrorTick().catch((e) => log("mirror loop", e.message)), MIRROR_MS);
-  // queue loop
+  // queue loop — starts immediately. Must not be blocked behind mirrorTick()
+  // below, which can take several minutes (its daily-brief step is a real
+  // LLM call with a 240s timeout, and re-fires on every restart past the
+  // configured brief hour since lastBriefDate is only in-memory) — every
+  // dispatched request would otherwise sit queued for that whole duration
+  // on every bridge restart.
   const tick = async () => { try { await processQueue(); } catch (e) { log("queue loop", e.message); } finally { setTimeout(tick, POLL_MS); } };
   tick();
+  mirrorTick().catch((e) => log("mirror loop", e.message));
+  setInterval(() => mirrorTick().catch((e) => log("mirror loop", e.message)), MIRROR_MS);
 }
 main().catch((e) => { console.error("fatal", e); process.exit(1); });
