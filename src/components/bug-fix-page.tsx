@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { TaskBoard, type Task } from "@/components/task-board";
 import { NewTicketModal } from "@/components/new-ticket-modal";
+import { TicketDetailPanel } from "@/components/ticket-detail-panel";
 
 interface BoardData {
   tasks: Task[];
@@ -15,6 +16,7 @@ const EMPTY_BOARD: BoardData = { tasks: [], total: 0, lastSync: null };
 export function BugFixPage() {
   const [board, setBoard] = useState<BoardData>(EMPTY_BOARD);
   const [showNew, setShowNew] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -48,6 +50,14 @@ export function BugFixPage() {
         />
       )}
 
+      {selectedTaskId && (
+        <TicketDetailPanel
+          taskId={selectedTaskId}
+          onClose={() => setSelectedTaskId(null)}
+          onChanged={load}
+        />
+      )}
+
       <TaskBoard
         tasks={board.tasks}
         total={board.total}
@@ -56,6 +66,7 @@ export function BugFixPage() {
         title="V-Decent Bug Backlog"
         emptyTitle="No open tickets"
         emptyHint="File a bug or feature request to get started."
+        onSelectTask={(t) => setSelectedTaskId(t.id)}
       />
     </div>
   );
