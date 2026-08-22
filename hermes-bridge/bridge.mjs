@@ -287,7 +287,19 @@ async function runRequest(r) {
       }
       if (!argv) throw new Error(`unknown kanban op ${op}`);
       result = (await hermes(argv, { timeout: 20000 })).trim();
-      if (op !== "show") await mirrorKanban(board);
+      if (op === "show") {
+        // The CLI's full --json output includes events/runs, which can be
+        // large (heartbeat spam on a long-running ticket) and aren't used
+        // by any consumer — keep only what's actually rendered (task +
+        // comments), so this reliably fits under the shared 8000-char
+        // result cap below instead of getting truncated into invalid JSON.
+        try {
+          const parsed = JSON.parse(result);
+          result = JSON.stringify({ task: parsed.task, comments: parsed.comments ?? [] });
+        } catch { /* leave result as the raw CLI output; caller surfaces the parse error */ }
+      } else {
+        await mirrorKanban(board);
+      }
     } else if (r.kind.startsWith("cron.")) {
       const op = r.kind.split(".")[1];
       const a = JSON.parse(r.prompt || "{}");
