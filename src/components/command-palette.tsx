@@ -37,8 +37,8 @@ const NAV: NavItem[] = [
   { label: "Support · Dev", href: "/support-dev", icon: Radio },
   { label: "Support · Pro", href: "/support-pro", icon: ShieldAlert },
   { label: "Tasks", href: "/tasks", icon: ListChecks },
-  { label: "Hermes", href: "/hermes", icon: Sparkles },
   { label: "Bug fix", href: "/bug-fix", icon: Bug },
+  { label: "Hermes", href: "/hermes", icon: Sparkles },
   { label: "Ideas", href: "/ideas", icon: Lightbulb },
 ];
 
