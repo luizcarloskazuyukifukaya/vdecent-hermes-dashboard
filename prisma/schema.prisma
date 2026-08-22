@@ -439,10 +439,11 @@ model ClientPulseAlert {
 model AgentRequest {
   id            String    @id @default(cuid())
   origin        String    @default("web")     // "web" | "hermes"
-  kind          String    @default("oneshot") // "oneshot" | "kanban" | "chat"
+  kind          String    @default("oneshot") // "oneshot" | "kanban.*" | "chat" | "cron.*" | ...
   title         String
   prompt        String?
   profile       String?   // e.g. "vdecent-dev-coordinator"; null = default profile
+  board         String?   // e.g. "vdecent-bug-backlog"; which kanban board a kanban.* request targets
   sideEffecting Boolean   @default(false)
   status        String    @default("queued")  // queued | awaiting_approval | approved | running | done | failed | rejected
   result        String?
@@ -479,6 +480,7 @@ model HermesTask {
   status            String    @default("todo")
   priority          Int?
   result            String?
+  body              String?                          // kanban task's opening post / description
   kanbanCreatedAt   DateTime?
   kanbanStartedAt   DateTime?
   kanbanCompletedAt DateTime?
