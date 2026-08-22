@@ -27,7 +27,7 @@ import os from "node:os";
 const execFileP = promisify(execFile);
 const HERMES = process.env.HERMES_BIN || "hermes";
 const BOARD = process.env.HERMES_BOARD || "default";
-const KANBAN_BOARDS = [BOARD, "vdecent-support-dev", "vdecent-support-prod"];
+const KANBAN_BOARDS = [BOARD, "vdecent-support-dev", "vdecent-support-prod", "vdecent-bug-backlog"];
 const POLL_MS = Number(process.env.BRIDGE_POLL_MS || 5000);
 const MIRROR_MS = Number(process.env.BRIDGE_MIRROR_MS || 30000);
 const RUN_TIMEOUT_MS = Number(process.env.BRIDGE_RUN_TIMEOUT_MS || 240000);
@@ -106,16 +106,17 @@ async function mirrorKanban(board) {
     if (!id) continue;
     seen.add(id);
     await q(
-      `INSERT INTO "HermesTask" (id, board, title, assignee, status, priority, result, "kanbanCreatedAt", "kanbanStartedAt", "kanbanCompletedAt", "updatedAt", "syncedAt")
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now(), now())
+      `INSERT INTO "HermesTask" (id, board, title, assignee, status, priority, result, body, "kanbanCreatedAt", "kanbanStartedAt", "kanbanCompletedAt", "updatedAt", "syncedAt")
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11, now(), now())
        ON CONFLICT (id) DO UPDATE SET
          title=EXCLUDED.title, assignee=EXCLUDED.assignee, status=EXCLUDED.status,
-         priority=EXCLUDED.priority, result=EXCLUDED.result,
+         priority=EXCLUDED.priority, result=EXCLUDED.result, body=EXCLUDED.body,
          "kanbanCreatedAt"=EXCLUDED."kanbanCreatedAt", "kanbanStartedAt"=EXCLUDED."kanbanStartedAt",
          "kanbanCompletedAt"=EXCLUDED."kanbanCompletedAt", "syncedAt"=now()`,
       [id, board, String(t.title ?? "untitled").slice(0, 300), t.assignee ?? null,
        String(t.status ?? "todo"), t.priority != null ? Number(t.priority) : null,
        t.result ? String(t.result).slice(0, 2000) : null,
+       t.body ? String(t.body).slice(0, 4000) : null,
        toDate(t.created_at), toDate(t.started_at), toDate(t.completed_at)]
     );
   }
@@ -266,8 +267,27 @@ async function runRequest(r) {
       } else {
         result = (await hermes(["-z", r.prompt || r.title], { timeout: RUN_TIMEOUT_MS })).trim();
       }
-    } else if (r.kind === "kanban") {
-      result = (await hermes(["kanban", "--board", BOARD, "create", "--json", r.title], { timeout: 20000 })).trim();
+    } else if (r.kind.startsWith("kanban.")) {
+      const op = r.kind.split(".")[1];
+      const board = r.board || BOARD;
+      let argv;
+      if (op === "create") {
+        argv = ["kanban", "--board", board, "create", "--json", r.title];
+        if (r.prompt) argv.push("--body", r.prompt);
+      } else {
+        const a = JSON.parse(r.prompt || "{}");
+        argv =
+          op === "comment"  ? ["kanban", "--board", board, "comment", a.taskId, a.text]
+          : op === "block"    ? ["kanban", "--board", board, "block", a.taskId, ...(a.reason ? [a.reason] : [])]
+          : op === "unblock"  ? ["kanban", "--board", board, "unblock", a.taskId, ...(a.reason ? ["--reason", a.reason] : [])]
+          : op === "archive"  ? ["kanban", "--board", board, "archive", a.taskId]
+          : op === "reassign" ? ["kanban", "--board", board, "reassign", a.taskId, a.profile, "--reclaim"]
+          : op === "show"     ? ["kanban", "--board", board, "show", a.taskId, "--json"]
+          : null;
+      }
+      if (!argv) throw new Error(`unknown kanban op ${op}`);
+      result = (await hermes(argv, { timeout: 20000 })).trim();
+      if (op !== "show") await mirrorKanban(board);
     } else if (r.kind.startsWith("cron.")) {
       const op = r.kind.split(".")[1];
       const a = JSON.parse(r.prompt || "{}");
