@@ -60,6 +60,7 @@ export function TaskBoard({
   title = "Hermes kanban",
   emptyTitle = "No tasks on the board",
   emptyHint = "Dispatched work and synced kanban cards will show up here.",
+  onSelectTask,
 }: {
   tasks: Task[];
   total: number;
@@ -68,6 +69,7 @@ export function TaskBoard({
   title?: string;
   emptyTitle?: string;
   emptyHint?: string;
+  onSelectTask?: (task: Task) => void;
 }) {
   const groups: Record<string, Task[]> = {};
   for (const t of tasks) {
@@ -116,12 +118,13 @@ export function TaskBoard({
                     .map((t) => (
                       <div
                         key={t.id}
-                        className="panel p-3.5"
+                        className={`panel p-3.5 ${onSelectTask ? "cursor-pointer panel-interactive" : ""}`}
                         style={{
                           borderLeft: `2px solid color-mix(in srgb, ${
                             tone === "neutral" ? "var(--text-3)" : `var(--${tone})`
                           } 55%, transparent)`,
                         }}
+                        onClick={onSelectTask ? () => onSelectTask(t) : undefined}
                       >
                         <p className="text-[13px] text-[var(--text)] leading-snug line-clamp-2">
                           {t.title}
