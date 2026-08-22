@@ -11,6 +11,7 @@ import {
   ClipboardList,
   Cpu,
   BookOpen,
+  Bug,
   GitBranch,
   Server,
   Menu,
@@ -26,23 +27,24 @@ const navGroups = [
     name: "Overview",
     items: [
       { href: "/", label: "Dashboard", icon: Home },
-      { href: "/hermes", label: "Hermes", icon: Cpu },
-      { href: "/tasks", label: "Tasks", icon: ClipboardList },
-    ],
-  },
-  {
-    name: "Data",
-    items: [
       { href: "/vdecent-dev", label: "V-Decent Dev", icon: GitBranch },
       { href: "/vdecent-pro", label: "V-Decent Pro", icon: Server },
     ],
   },
   {
-    name: "System",
+    name: "Operation",
     items: [
       { href: "/support-dev", label: "Support · Dev", icon: Radio },
       { href: "/support-pro", label: "Support · Pro", icon: ShieldAlert },
+      { href: "/tasks", label: "Tasks", icon: ClipboardList },
+    ],
+  },
+  {
+    name: "System",
+    items: [
+      { href: "/hermes", label: "Hermes", icon: Cpu },
       { href: "/memory-wiki", label: "Memory Wiki", icon: BookOpen },
+      { href: "/bug-fix", label: "Bug fix", icon: Bug },
       { href: "/ideas", label: "Ideas", icon: Lightbulb },
     ],
   },

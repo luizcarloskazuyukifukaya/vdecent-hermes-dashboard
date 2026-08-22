@@ -17,6 +17,7 @@ import {
   Lightbulb,
   ListChecks,
   Sparkles,
+  Bug,
   CornerDownLeft,
   Search,
   Check,
@@ -35,9 +36,10 @@ const NAV: NavItem[] = [
   { label: "V-Decent Pro", href: "/vdecent-pro", icon: Server },
   { label: "Support · Dev", href: "/support-dev", icon: Radio },
   { label: "Support · Pro", href: "/support-pro", icon: ShieldAlert },
-  { label: "Ideas", href: "/ideas", icon: Lightbulb },
   { label: "Tasks", href: "/tasks", icon: ListChecks },
   { label: "Hermes", href: "/hermes", icon: Sparkles },
+  { label: "Bug fix", href: "/bug-fix", icon: Bug },
+  { label: "Ideas", href: "/ideas", icon: Lightbulb },
 ];
 
 type Row =
