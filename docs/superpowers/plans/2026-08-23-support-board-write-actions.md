@@ -1,6 +1,6 @@
 # Support Board Write Actions Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Let a human view why a task is blocked on the `/support-dev`/`/support-pro` Board view and act on it directly — Comment, Unblock, Mark Done — instead of it being purely read-only.
 
@@ -26,7 +26,7 @@
 **Interfaces:**
 - Produces (used by Task 3): `POST /api/support-team/{env}/tasks/{taskId}/detail` → `{requestId}` (an `AgentRequest` of `kind: "kanban.show"`; poll it via the existing `GET /api/hermes/requests/[id]` to get `result` — a JSON string of `{task: {id, title, body, status, assignee, result}, comments: [{author, body}]}`, matching the Bug Fix detail route's exact result shape).
 
-- [ ] **Step 1: Write the route**
+- [x] **Step 1: Write the route**
 
 ```ts
 import { NextResponse } from "next/server";
@@ -59,12 +59,12 @@ export async function POST(_req: Request, { params }: { params: Promise<{ env: s
 }
 ```
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 Run: `npx tsc`
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/app/api/support-team/[env]/tasks/[taskId]/detail/route.ts
@@ -91,7 +91,7 @@ EOF
 **Interfaces:**
 - Produces (used by Task 3): `POST /api/support-team/{env}/tasks/{taskId}/action` with body `{action: "comment"|"unblock"|"complete", text?, reason?, result?}` → `{requestId}`.
 
-- [ ] **Step 1: Write the route**
+- [x] **Step 1: Write the route**
 
 ```ts
 import { NextResponse } from "next/server";
@@ -149,12 +149,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ env: st
 }
 ```
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 Run: `npx tsc`
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/app/api/support-team/[env]/tasks/[taskId]/action/route.ts
@@ -183,7 +183,7 @@ EOF
 - Consumes: `POST /api/support-team/{env}/tasks/{taskId}/detail` and `.../action` (Tasks 1-2), `dispatchAndPoll` from `@/lib/bug-backlog-dispatch` (existing, generic).
 - Produces (used by Task 4): `SupportTaskDetailPanel({taskId, env, onClose, onChanged}: {taskId: string; env: "dev" | "pro"; onClose: () => void; onChanged: () => void})`.
 
-- [ ] **Step 1: Write the component**
+- [x] **Step 1: Write the component**
 
 ```tsx
 "use client";
@@ -368,12 +368,12 @@ export function SupportTaskDetailPanel({
 }
 ```
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 Run: `npx tsc`
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/support-task-detail-panel.tsx
@@ -400,7 +400,7 @@ EOF
 **Interfaces:**
 - Consumes: `SupportTaskDetailPanel` (Task 3), `TaskBoard`'s existing `onSelectTask` prop (already present, unused until now).
 
-- [ ] **Step 1: Add the import and selection state**
+- [x] **Step 1: Add the import and selection state**
 
 Current top of file:
 
@@ -444,7 +444,7 @@ Replace with:
   const { getThread, sendMessage } = useAgentChats(env);
 ```
 
-- [ ] **Step 2: Wire `onSelectTask` and render the panel**
+- [x] **Step 2: Wire `onSelectTask` and render the panel**
 
 Current Board View block:
 
@@ -497,12 +497,12 @@ Replace with:
 }
 ```
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 Run: `npx tsc`
 Expected: no errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/support-team-page.tsx
@@ -530,13 +530,13 @@ EOF
 
 No new credentials needed — this reuses the existing `AgentRequest`/`hermes-bridge` dispatch pipeline already live since earlier this session.
 
-- [ ] **Step 1: Push to GitHub**
+- [x] **Step 1: Push to GitHub**
 
 ```bash
 git push origin main
 ```
 
-- [ ] **Step 2: Trigger a deploy and wait for it to finish**
+- [x] **Step 2: Trigger a deploy and wait for it to finish**
 
 ```bash
 source ~/.bashrc
@@ -545,7 +545,7 @@ curl -sS -X POST -H "Authorization: Bearer $COOLIFY_API_TOKEN" -H "Accept: appli
 
 Poll `GET https://coolify.v-decent.org/api/v1/deployments/{deployment_uuid}` yourself (no external notification — check, sleep ~10-15s, check again) until `status` is `finished`. Retry once on a transient DNS blip; escalate if it fails twice or any other way.
 
-- [ ] **Step 3: Verify the new routes live**
+- [x] **Step 3: Verify the new routes live**
 
 Fetch the `INTERNAL_API_SECRET` the same way as prior deploy tasks this session, then exercise the detail route against a real currently-blocked task (e.g. `t_c9ad19a3`-style ID — look up a current blocked task id from `GET /api/support-team/dev/tasks` first since specific IDs drift over time):
 
@@ -577,6 +577,6 @@ curl -sS "https://dashboard.v-decent.org/api/hermes/requests/$REQ_ID" -H "x-inte
 
 Expected: the request completes `done`, with `result` containing a JSON string with `task`/`comments` — confirming the detail route successfully dispatches a real `kanban.show` against `vdecent-support-dev` for a real blocked task. Do NOT exercise the `action` route's `unblock`/`complete` actions against a real task during this verification step — those are side-effecting on live operational data; read-only `detail` is sufficient to confirm the deploy took effect.
 
-- [ ] **Step 4: Ask the user to visually confirm in the browser**
+- [x] **Step 4: Ask the user to visually confirm in the browser**
 
 Report to the user: deployed and live. Ask them to open `/support-dev`, switch to Board view, click a card, and confirm the detail panel opens showing status/body/comments with Comment (always) and, if the task is blocked, an Unblock button, and if not done, a Mark Done control — since this environment has no browser to verify the rendered UI directly. Suggest they try it on the actual `t_e5e364f8`-style orphaned task if one is still present, to close the real case that motivated this feature.
