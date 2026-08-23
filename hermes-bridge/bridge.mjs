@@ -74,6 +74,51 @@ function profileHome(profile) {
   return path.join(process.env.HERMES_HOME || path.join(os.homedir(), ".hermes"), "profiles", profile);
 }
 
+function parseEnvFile(filePath) {
+  const out = {};
+  try {
+    const raw = fs.readFileSync(filePath, "utf8");
+    for (const line of raw.split("\n")) {
+      const l = line.trim();
+      if (!l || l.startsWith("#")) continue;
+      const withoutExport = l.startsWith("export ") ? l.slice(7) : l;
+      const eq = withoutExport.indexOf("=");
+      if (eq === -1) continue;
+      const key = withoutExport.slice(0, eq).trim();
+      let val = withoutExport.slice(eq + 1).trim();
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.slice(1, -1);
+      }
+      if (key) out[key] = val;
+    }
+  } catch { /* file missing or unreadable — caller just won't have these vars */ }
+  return out;
+}
+
+// V-Decent-account-level credentials (Coolify, Cloudflare, App Manager, Node
+// Manager) that a profile's own native environment has pre-exported, but a
+// chat request routed through this bridge doesn't — without these, a
+// support-team profile has to rediscover credential file locations via
+// trial-and-error on every single message. These files already live in the
+// same HERMES_HOME directory this container has mounted for profile data;
+// no new mount needed, this only reads what's already reachable.
+function vdecentCredEnv(profile) {
+  const env = profile.includes("-prod-") ? "prod" : "dev";
+  const base = process.env.HERMES_HOME || path.join(os.homedir(), ".hermes");
+  const cloudflare = parseEnvFile(path.join(base, "cloudflare_token.env"));
+  const coolify = parseEnvFile(path.join(base, "coolify_token.env"));
+  const am = parseEnvFile(path.join(base, `am_env_${env}.env`));
+  const nm = parseEnvFile(path.join(base, `nm_env_${env}.env`));
+  const out = {};
+  if (cloudflare.CLOUDFLARE_API_TOKEN) out.CLOUDFLARE_API_TOKEN = cloudflare.CLOUDFLARE_API_TOKEN;
+  if (cloudflare.CLOUDFLARE_ACCOUNT_ID) out.CLOUDFLARE_ACCOUNT_ID = cloudflare.CLOUDFLARE_ACCOUNT_ID;
+  if (cloudflare.CLOUDFLARE_ZONE_ID) out.CLOUDFLARE_ZONE_ID = cloudflare.CLOUDFLARE_ZONE_ID;
+  if (coolify.COOLIFY_API_TOKEN) out.COOLIFY_API_TOKEN = coolify.COOLIFY_API_TOKEN;
+  if (am.NEXT_PUBLIC_STATIC_API_TOKEN) out.AM_STATIC_TOKEN = am.NEXT_PUBLIC_STATIC_API_TOKEN;
+  if (nm.NEXT_PUBLIC_STATIC_API_TOKEN) out.NM_API_TOKEN = nm.NEXT_PUBLIC_STATIC_API_TOKEN;
+  return out;
+}
+
 async function emit(kind, title, { detail = null, agent = "hermes", level = "info", meta = null } = {}) {
   await q(
     `INSERT INTO "AgentEvent" (id, kind, title, detail, agent, level, meta, "createdAt")
@@ -262,7 +307,7 @@ async function runRequest(r) {
     if (r.kind === "oneshot" || r.kind === "chat") {
       if (r.kind === "chat" && r.profile) {
         const args = ["-z", r.prompt || r.title, "--continue", `dashboard-${r.profile}`];
-        const env = { ...process.env, HERMES_HOME: profileHome(r.profile) };
+        const env = { ...process.env, HERMES_HOME: profileHome(r.profile), ...vdecentCredEnv(r.profile) };
         result = (await hermes(args, { timeout: RUN_TIMEOUT_MS, env })).trim();
       } else {
         result = (await hermes(["-z", r.prompt || r.title], { timeout: RUN_TIMEOUT_MS })).trim();
