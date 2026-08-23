@@ -40,6 +40,9 @@ function isInfraData(d: unknown): d is InfraData {
   if (!obj.urls || typeof obj.urls !== "object") return false;
   const urls = obj.urls as Record<string, unknown>;
   if (!("tunnels" in urls) || !("coolifyApps" in urls) || !("coolifyServers" in urls)) return false;
+  if (!obj.errors || typeof obj.errors !== "object") return false;
+  const errors = obj.errors as Record<string, unknown>;
+  if (!("tunnels" in errors) || !("coolifyApps" in errors) || !("coolifyServers" in errors)) return false;
   return true;
 }
 
