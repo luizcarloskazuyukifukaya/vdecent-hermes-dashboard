@@ -1,26 +1,35 @@
 import { NextResponse } from "next/server";
-import { fetchCloudflareTunnels, fetchCoolifyApps, fetchCoolifyServers } from "@/lib/vdecent-infra";
+import { fetchCloudflareTunnels, fetchCoolifyDevApps, fetchCoolifyProdApps, fetchCoolifyServers } from "@/lib/vdecent-infra";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const [tunnels, coolifyApps, coolifyServers] = await Promise.all([
+  const [tunnels, coolifyDevApps, coolifyProdApps, coolifyServers] = await Promise.all([
     fetchCloudflareTunnels(),
-    fetchCoolifyApps(),
+    fetchCoolifyDevApps(),
+    fetchCoolifyProdApps(),
     fetchCoolifyServers(),
   ]);
 
   return NextResponse.json({
     tunnels: tunnels.counts,
     tunnelsState: tunnels.state,
-    coolifyApps: coolifyApps.counts,
-    coolifyAppsState: coolifyApps.state,
+    coolifyDevApps: coolifyDevApps.count,
+    coolifyDevAppsState: coolifyDevApps.state,
+    coolifyProdApps: coolifyProdApps.count,
+    coolifyProdAppsState: coolifyProdApps.state,
     coolifyServers: coolifyServers.counts,
     coolifyServersState: coolifyServers.state,
-    urls: { tunnels: tunnels.url, coolifyApps: coolifyApps.url, coolifyServers: coolifyServers.url },
+    urls: {
+      tunnels: tunnels.url,
+      coolifyDevApps: coolifyDevApps.url,
+      coolifyProdApps: coolifyProdApps.url,
+      coolifyServers: coolifyServers.url,
+    },
     errors: {
       tunnels: tunnels.error,
-      coolifyApps: coolifyApps.error,
+      coolifyDevApps: coolifyDevApps.error,
+      coolifyProdApps: coolifyProdApps.error,
       coolifyServers: coolifyServers.error,
     },
   });
