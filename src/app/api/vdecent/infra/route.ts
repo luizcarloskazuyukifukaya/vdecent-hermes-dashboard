@@ -17,6 +17,11 @@ export async function GET() {
     coolifyAppsState: coolifyApps.state,
     coolifyServers: coolifyServers.counts,
     coolifyServersState: coolifyServers.state,
-    urls: { tunnels: tunnels.url, coolify: coolifyApps.url },
+    urls: { tunnels: tunnels.url, coolifyApps: coolifyApps.url, coolifyServers: coolifyServers.url },
+    errors: {
+      tunnels: tunnels.error,
+      coolifyApps: coolifyApps.error,
+      coolifyServers: coolifyServers.error,
+    },
   });
 }

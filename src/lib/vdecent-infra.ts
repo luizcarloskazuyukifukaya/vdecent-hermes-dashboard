@@ -19,15 +19,18 @@ function emptySection(state: "not_configured" | "unreachable", url: string | nul
 export async function fetchCloudflareTunnels(): Promise<Section<never>> {
   const token = process.env.CLOUDFLARE_API_TOKEN;
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
-  const url = "https://dash.cloudflare.com/" + (accountId ?? "") + "/networks/tunnels";
   if (!token || !accountId) return emptySection("not_configured", null, null);
+  const url = `https://one.dash.cloudflare.com/${accountId}/networks/connectors`;
 
   try {
     const data = await fetchJson(
-      `https://api.cloudflare.com/client/v4/accounts/${accountId}/cfd_tunnel?is_deleted=false`,
+      `https://api.cloudflare.com/client/v4/accounts/${accountId}/cfd_tunnel?is_deleted=false&per_page=1000`,
       { Authorization: `Bearer ${token}` }
-    ) as { result?: Array<{ status?: string }> };
-    const items = data.result ?? [];
+    ) as { success?: boolean; result?: Array<{ status?: string }> };
+    if (data.success !== true || !Array.isArray(data.result)) {
+      throw new Error("Unexpected Cloudflare API response shape");
+    }
+    const items = data.result;
     const counts: HealthCounts = { healthy: 0, pending: 0, atRisk: 0, total: items.length };
     for (const t of items) {
       if (t.status === "healthy") counts.healthy += 1;
@@ -51,7 +54,10 @@ export async function fetchCoolifyServers(): Promise<Section<never>> {
       "https://coolify.v-decent.org/api/v1/servers",
       { Authorization: `Bearer ${token}` }
     ) as Array<{ is_reachable?: boolean; is_usable?: boolean }>;
-    const items = Array.isArray(data) ? data : [];
+    if (!Array.isArray(data)) {
+      throw new Error("Unexpected Coolify servers API response shape");
+    }
+    const items = data;
     const counts: HealthCounts = { healthy: 0, pending: 0, atRisk: 0, total: items.length };
     for (const s of items) {
       if (s.is_reachable && s.is_usable) counts.healthy += 1;
@@ -75,7 +81,10 @@ export async function fetchCoolifyApps(): Promise<Section<never>> {
       "https://coolify.v-decent.org/api/v1/applications",
       { Authorization: `Bearer ${token}` }
     ) as Array<{ status?: string }>;
-    const items = Array.isArray(data) ? data : [];
+    if (!Array.isArray(data)) {
+      throw new Error("Unexpected Coolify applications API response shape");
+    }
+    const items = data;
     const counts: HealthCounts = { healthy: 0, pending: 0, atRisk: 0, total: items.length };
     for (const a of items) {
       const status = a.status ?? "";
