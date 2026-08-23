@@ -46,7 +46,7 @@ export async function fetchCloudflareTunnels(): Promise<Section<never>> {
 
 export async function fetchCoolifyServers(): Promise<Section<never>> {
   const token = process.env.COOLIFY_API_TOKEN;
-  const url = "https://coolify.v-decent.org";
+  const url = "https://coolify.v-decent.org/servers";
   if (!token) return emptySection("not_configured", null, null);
 
   try {
@@ -71,30 +71,51 @@ export async function fetchCoolifyServers(): Promise<Section<never>> {
   }
 }
 
-export async function fetchCoolifyApps(): Promise<Section<never>> {
+export interface CountSection {
+  state: "ok" | "not_configured" | "unreachable";
+  count: number | null;
+  url: string;
+  error: string | null;
+}
+
+interface CoolifyEnvironmentRef {
+  projectUuid: string;
+  environmentUuid: string;
+}
+
+const COOLIFY_DEV_ENV: CoolifyEnvironmentRef = {
+  projectUuid: "htb5fvtz30yyj3kmkgpy0e48",
+  environmentUuid: "t13h0s3x0c342r4m2u2sg5tg",
+};
+const COOLIFY_PROD_ENV: CoolifyEnvironmentRef = {
+  projectUuid: "rt43u6zclfay6zx1k5p0ct26",
+  environmentUuid: "pq3z6jmucnbgwg9npyq0pbxv",
+};
+
+async function fetchCoolifyEnvironmentAppCount(env: CoolifyEnvironmentRef): Promise<CountSection> {
   const token = process.env.COOLIFY_API_TOKEN;
-  const url = "https://coolify.v-decent.org";
-  if (!token) return emptySection("not_configured", null, null);
+  const url = `https://coolify.v-decent.org/project/${env.projectUuid}/environment/${env.environmentUuid}`;
+  if (!token) return { state: "not_configured", count: null, url, error: null };
 
   try {
     const data = await fetchJson(
-      "https://coolify.v-decent.org/api/v1/applications",
+      `https://coolify.v-decent.org/api/v1/projects/${env.projectUuid}/${env.environmentUuid}`,
       { Authorization: `Bearer ${token}` }
-    ) as Array<{ status?: string }>;
-    if (!Array.isArray(data)) {
-      throw new Error("Unexpected Coolify applications API response shape");
+    ) as { applications?: unknown };
+    if (!Array.isArray(data.applications)) {
+      throw new Error("Unexpected Coolify environment API response shape");
     }
-    const items = data;
-    const counts: HealthCounts = { healthy: 0, pending: 0, atRisk: 0, total: items.length };
-    for (const a of items) {
-      const status = a.status ?? "";
-      if (status.startsWith("running:healthy")) counts.healthy += 1;
-      else if (status.startsWith("running:")) counts.pending += 1;
-      else counts.atRisk += 1;
-    }
-    return { state: "ok", counts, items: [], url, error: null };
+    return { state: "ok", count: data.applications.length, url, error: null };
   } catch (e) {
     const message = e instanceof Error ? e.message : "unknown error";
-    return emptySection("unreachable", url, message);
+    return { state: "unreachable", count: null, url, error: message };
   }
+}
+
+export function fetchCoolifyDevApps(): Promise<CountSection> {
+  return fetchCoolifyEnvironmentAppCount(COOLIFY_DEV_ENV);
+}
+
+export function fetchCoolifyProdApps(): Promise<CountSection> {
+  return fetchCoolifyEnvironmentAppCount(COOLIFY_PROD_ENV);
 }
