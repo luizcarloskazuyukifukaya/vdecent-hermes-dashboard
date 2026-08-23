@@ -96,6 +96,9 @@ services:
       - CRON_SECRET=${CRON_SECRET}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - COOLIFY_API_TOKEN=${COOLIFY_API_TOKEN:-}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
+      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID:-}
 
   # ---------------------------------------------------------------------------
   # hermes-bridge-prep — one-shot: builds bridge.mjs + its node_modules (pg,
