@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { VDecentOverviewCard } from "@/components/vdecent-overview-card";
+import { VDecentInfraCard } from "@/components/vdecent-infra-card";
 
 function greeting() {
   const h = new Date().getHours();
@@ -35,6 +36,7 @@ export default function Dashboard() {
         </p>
       </div>
       <VDecentOverviewCard />
+      <VDecentInfraCard />
     </div>
   );
 }
