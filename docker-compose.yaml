@@ -147,6 +147,16 @@ services:
     volumes:
       - /home/kfukaya/hermes-agent/data:/opt/data
       - hermes-bridge-app:/opt/bridge:ro
+      # A profile's own native gateway container (e.g. hermes-dev-coordinator)
+      # has these two mounted, and its skills assume they're always present
+      # (e.g. vdecent-support requires /home/kfukaya/scripts/{coolify,am}.py
+      # for every Coolify/App Manager call, and forbids working around their
+      # absence). hermes-bridge runs the same profiles for live dashboard
+      # chat but previously lacked both mounts, so any chat request needing
+      # real tool access would search for them, find nothing, and run out
+      # the clock. Read-only: this container should observe, not mutate.
+      - /home/kfukaya/hermes-agent/scripts:/home/kfukaya/scripts:ro
+      - /home/kfukaya/projects:/home/kfukaya/projects:ro
     environment:
       # Host networking has no Docker-DNS, so the "hermy-hq-postgres"
       # service-name alias used by ${DATABASE_URL} doesn't resolve here —
