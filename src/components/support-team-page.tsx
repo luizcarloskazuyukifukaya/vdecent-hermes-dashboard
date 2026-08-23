@@ -5,6 +5,7 @@ import SupportOfficeView from "@/components/SupportOfficeView";
 import { AgentCard, type Agent } from "@/components/agent-card";
 import { AgentChat } from "@/components/agent-chat";
 import { TaskBoard, type Task } from "@/components/task-board";
+import { SupportTaskDetailPanel } from "@/components/support-task-detail-panel";
 import { useAgentChats } from "@/lib/use-agent-chats";
 
 interface BoardData {
@@ -22,6 +23,7 @@ export function SupportTeamPage({ env, title }: { env: "dev" | "pro"; title: str
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
   const [view, setView] = useState<"cards" | "office" | "board">("office");
   const [chatAgent, setChatAgent] = useState<Agent | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const { getThread, sendMessage } = useAgentChats(env);
 
   const loadAgents = useCallback(async () => {
@@ -259,6 +261,15 @@ export function SupportTeamPage({ env, title }: { env: "dev" | "pro"; title: str
           title={`${title} incidents`}
           emptyTitle="No open incidents"
           emptyHint="Incidents mirrored from this environment's support board will show up here."
+          onSelectTask={setSelectedTask}
+        />
+      )}
+      {selectedTask && (
+        <SupportTaskDetailPanel
+          taskId={selectedTask.id}
+          env={env}
+          onClose={() => setSelectedTask(null)}
+          onChanged={loadBoard}
         />
       )}
       </div>
