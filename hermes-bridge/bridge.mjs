@@ -327,6 +327,7 @@ async function runRequest(r) {
           : op === "unblock"  ? ["kanban", "--board", board, "unblock", a.taskId, ...(a.reason ? ["--reason", a.reason] : [])]
           : op === "archive"  ? ["kanban", "--board", board, "archive", a.taskId]
           : op === "reassign" ? ["kanban", "--board", board, "reassign", a.taskId, a.profile, "--reclaim"]
+          : op === "complete" ? ["kanban", "--board", board, "complete", a.taskId, ...(a.result ? ["--result", a.result] : [])]
           : op === "show"     ? ["kanban", "--board", board, "show", a.taskId, "--json"]
           : null;
       }

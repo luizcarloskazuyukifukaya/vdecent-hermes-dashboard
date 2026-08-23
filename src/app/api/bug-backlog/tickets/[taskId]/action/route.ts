@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 const BOARD = "vdecent-bug-backlog";
-const ACTIONS = new Set(["comment", "block", "unblock", "archive", "reassign"]);
+const ACTIONS = new Set(["comment", "block", "unblock", "archive", "reassign", "complete"]);
 
 export async function POST(req: Request, { params }: { params: Promise<{ taskId: string }> }) {
   const { taskId } = await params;
@@ -31,6 +31,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ taskId:
     if (!profile) return NextResponse.json({ error: "profile required" }, { status: 400 });
     payload.profile = profile;
     title = `Reassign ${taskId} to ${profile}`;
+  } else if (action === "complete") {
+    const result = (b.result || "").toString().trim();
+    if (result) payload.result = result;
+    title = `Complete ${taskId}`;
   }
 
   const row = await prisma.agentRequest.create({

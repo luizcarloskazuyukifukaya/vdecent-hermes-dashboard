@@ -31,6 +31,7 @@ export function TicketDetailPanel({
   const [error, setError] = useState<string | null>(null);
   const [comment, setComment] = useState("");
   const [reassignTo, setReassignTo] = useState("");
+  const [doneResult, setDoneResult] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function loadDetail() {
@@ -88,6 +89,12 @@ export function TicketDetailPanel({
     if (!profile) return;
     setReassignTo("");
     runAction("reassign", { profile });
+  }
+
+  function submitComplete() {
+    const result = doneResult.trim();
+    setDoneResult("");
+    runAction("complete", result ? { result } : {});
   }
 
   return (
@@ -148,6 +155,23 @@ export function TicketDetailPanel({
             />
             <button onClick={submitComment} disabled={!comment.trim() || busy} className="btn-primary px-4 py-2 text-[13px]">Send</button>
           </div>
+          {detail?.status !== "done" && (
+            <div className="flex gap-2">
+              <input
+                value={doneResult}
+                onChange={e => setDoneResult(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && !e.shiftKey && submitComplete()}
+                placeholder="Resolution summary (optional)…"
+                className="flex-1 rounded-full px-4 py-2 text-[13px] text-[var(--text)] focus:outline-none"
+                style={{ background: "var(--surface-1)", border: "1px solid var(--line)" }}
+              />
+              <button onClick={submitComplete} disabled={busy}
+                className="px-4 py-2 text-[13px] rounded-full font-medium"
+                style={{ color: "var(--up)", background: "color-mix(in srgb, var(--up) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--up) 30%, transparent)" }}>
+                Mark Done
+              </button>
+            </div>
+          )}
           <div className="flex flex-wrap items-center gap-2">
             {detail?.status !== "blocked" && (
               <button onClick={() => runAction("block")} disabled={busy}
