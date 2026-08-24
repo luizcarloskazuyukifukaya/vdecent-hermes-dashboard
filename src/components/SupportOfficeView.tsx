@@ -33,10 +33,36 @@ const WALK = {
 };
 
 // ── Pixel art sprites ─────────────────────────────────────
-// No custom sprites yet for the real roster — PixelSprite falls back to a
-// generic 🤖 for any id with no entry here. Add an entry the same shape as
-// this record to give a role custom pixel art later.
-const SPRITE_DATA: Record<string, { palette: Record<string, string>; rows: string[] }> = {};
+// One shared "hoodie teammate" body for the roster; only the 2px chest
+// badge (palette key "A") differs per role. Any id with no entry here
+// still falls back to a generic 🤖 in PixelSprite below.
+function hoodieSprite(accent: string) {
+  return {
+    palette: { K: "#0f172a", H: "#94a3b8", W: "#f8fafc", B: "#475569", A: accent },
+    rows: [
+      "..KKKKKK..",
+      ".KHHHHHHK.",
+      "KHHWHHWHHK",
+      "KHHHHHHHHK",
+      ".KHHHHHHK.",
+      "..KBBBBK..",
+      ".KBBAABBK.",
+      ".KBBBBBBK.",
+      ".KBBBBBBK.",
+      ".KBBBBBBK.",
+      "..K.KK.K..",
+      "..K.KK.K..",
+    ],
+  };
+}
+
+const SPRITE_DATA: Record<string, { palette: Record<string, string>; rows: string[] }> = {
+  coordinator: hoodieSprite("#38bdf8"),
+  apps: hoodieSprite("#fb923c"),
+  edge: hoodieSprite("#2dd4bf"),
+  infra: hoodieSprite("#a78bfa"),
+  verifier: hoodieSprite("#fb7185"),
+};
 
 function PixelSprite({ agentId, size }: { agentId: string; size: number }) {
   const data = SPRITE_DATA[agentId];
