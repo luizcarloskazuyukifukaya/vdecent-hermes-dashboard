@@ -53,10 +53,23 @@ environment variables.
 
 ## Features
 
-**Cockpit**
-- Dashboard home with an at-a-glance view of the agent, tasks, and the day
+**Overview**
+- Dashboard home — at-a-glance view of the agent, tasks, infra health, and the day
+  (includes the V-Decent Infrastructure card: Coolify app counts, Cloudflare status)
+- V-Decent Dev / V-Decent Pro (`/vdecent-dev`, `/vdecent-pro`) — per-environment App
+  Manager and Node Manager tables (health / pending / at-risk counts, SLA, node
+  capacity)
 - ⌘K command palette to jump anywhere or fire an action
 - Chief-of-Staff daily brief, generated on a schedule
+
+**Operation**
+- Support · Dev / Support · Pro (`/support-dev`, `/support-pro`) — a live kanban
+  board mirrored from the real V-Decent support team, an office view of agent
+  status, a chat panel to dispatch work, and a task detail panel with
+  Comment / Unblock / Mark Done actions
+- Tasks board (`/tasks`) — general kanban task tracking
+- Bug Fix board (`/bug-fix`) — ticket board for V-Decent infrastructure bugs and
+  feature requests
 
 **Hermes control hub** (`/hermes`)
 - Dispatch one-shot prompts or kanban tasks to the agent
@@ -64,18 +77,10 @@ environment variables.
 - Live activity feed and run history
 - Cron list and health mirrored from the agent
 
-**Memory**
-- Memory Wiki — browse and edit the agent's memory (facts, notes, links) as a wiki
-
-**Work & content**
-- Tasks and Ideas boards
-- Content OS — an X / Twitter content pipeline (drafts, scoring, scheduling)
-- Longform + YouTube script studios
-- Client Pulse — a client-health tracking board (bring your own data ingestion)
-- Agents roster, Garden, and Watchlist Radar
-
-> Some features need your own API keys (YouTube, X/Twitter, OpenAI, etc.). They are
-> all optional and configured via env — the core dashboard runs without them.
+**Memory & planning**
+- Memory Wiki (`/memory-wiki`) — browse and edit the agent's memory (facts, notes,
+  links) as a wiki
+- Ideas board (`/ideas`)
 
 ---
 
@@ -104,7 +109,7 @@ process runs on the machine where Hermes lives.
         ┌────────────────────────────────────────────────────────┐
         │                  Postgres (message bus)                 │
         │  AgentRequest · AgentEvent · HermesTask · HermesMemory  │
-        │  DataStore · Brief · …                                  │
+        │  DataStore · Idea · …                                   │
         └────────────────────────────────────────────────────────┘
 ```
 
@@ -129,7 +134,6 @@ access to Postgres and your local `hermes` CLI. See
 - **Styling:** Tailwind CSS v4
 - **Data:** Prisma ORM + PostgreSQL
 - **Auth:** NextAuth with Google login (email allowlist)
-- **Charts / DnD:** Recharts, react-dnd
 - **Deploy:** Vercel (website) + launchd/systemd (bridge)
 - **Agent:** [Hermes](https://github.com/NousResearch/hermes-agent) `hermes` CLI
 
@@ -223,7 +227,7 @@ systemd (Linux) — full instructions in
 ## Project layout
 
 ```
-src/            Next.js App Router (dashboard, /hermes, memory-wiki, content-os, …)
+src/            Next.js App Router (dashboard, /hermes, /support-dev, /vdecent-dev, …)
 prisma/         schema.prisma (message-bus + feature models)
 hermes-bridge/  the bridge that runs on your machine next to Hermes
 .env.example    every env var, documented
